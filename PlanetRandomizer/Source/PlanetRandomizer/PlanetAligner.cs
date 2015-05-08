@@ -43,15 +43,8 @@ namespace PlanetRandomizer
                     if (target.pqsController != null)
                     {
                         target.pqsController.radius = planet.Radius;
-                        //if (target.ocean)
-                        //{
-                        /*print("Changing " + planet.Name + "'s Ocean1.");
-                        CelestialBody targetOcean = (from c in FlightGlobals.Bodies where c.gameObject.name == planet.Name + "Ocean" select c).FirstOrDefault();
-                        print("Changing " + planet.Name + "'s Ocean3.");
-                        targetOcean.pqsController.radius = planet.Radius;
-                        print("Changing " + planet.Name + "'s Ocean4.");*/
-                        //}
                     }
+
 
                     foreach (Transform t in ScaledSpace.Instance.scaledSpaceTransforms)
                     {
@@ -98,23 +91,17 @@ namespace PlanetRandomizer
                 }
             }
 
-
-            foreach (CelestialBody body in FlightGlobals.fetch.bodies)
+            foreach (AtmosphereFromGround ag in Resources.FindObjectsOfTypeAll(typeof(AtmosphereFromGround)))
             {
-                foreach (AtmosphereFromGround ag in Resources.FindObjectsOfTypeAll(typeof(AtmosphereFromGround)))
+                if (ag != null && ag.planet != null)
                 {
-                    if (ag != null && ag.planet != null)
-                    {
-                        // generalized version of Starwaster's code. Thanks Starwaster!
-                        if (body.name == ag.planet.name)
-                        {
-                            print("Found atmo for " + body.name + ": " + ag.name + ", has localScale " + ag.transform.localScale.x);
-                            UpdateAFG(body, ag);
-                            print("Atmo updated");
-                        }
-                    }
+                    // generalized version of Starwaster's code. Thanks Starwaster!
+                    print("Found atmo for " + ag.planet.name + ": " + ag.name + ", has localScale " + ag.transform.localScale.x);
+                    UpdateAFG(ag.planet, ag);
+                    print("Atmo updated");
                 }
             }
+
             print("Done changing planets");
 
         }
@@ -133,7 +120,6 @@ namespace PlanetRandomizer
             afg.scale = 1f / (afg.outerRadius - afg.innerRadius);
             afg.scaleDepth = -0.25f;
             afg.scaleOverScaleDepth = afg.scale / afg.scaleDepth;
-
         }
 
         private static double GetHillSphere(CelestialBody body)
@@ -143,7 +129,7 @@ namespace PlanetRandomizer
 
         private static double GetSOI(CelestialBody body)
         {
-            return body.orbit.semiMajorAxis * Math.Pow(body.Mass / (body.orbit.referenceBody.Mass + body.Mass), 0.4);
+            return Math.Max(body.orbit.semiMajorAxis * Math.Pow(body.Mass / (body.orbit.referenceBody.Mass + body.Mass), 0.5), body.Radius + body.scienceValues.spaceAltitudeThreshold * 1.2);
         }
 
         private static double GetPeriod(CelestialBody body)

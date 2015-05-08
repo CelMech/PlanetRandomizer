@@ -61,7 +61,7 @@ namespace PlanetRandomizer
                 planetData.Name = planet.gameObject.name;
                 planetData.currentBody = planet;
 
-                if (planet != Planetarium.fetch.Home && planet.pqsController != null)
+                if (planet.pqsController != null && !planet.atmosphere && !planet.ocean)
                 {
                     planetData.Radius = defaultData.Radius * Math.Pow(2, 2.0 * rng.NextDouble() - 1);
                 }
