@@ -25,6 +25,7 @@ namespace PlanetRandomizer
         }
 
         public static PlanetData[] DefaultOrbits;
+        public static PlanetData DefaultKerbin;
 
         [Persistent]
         public int seed = 1;
@@ -77,6 +78,8 @@ namespace PlanetRandomizer
                 planetData.RotationPeriod = planet.rotationPeriod;
                 planetData.SemiMajorAxis = planet.orbit.semiMajorAxis;
                 planetData.sphereOfInfluence = planet.sphereOfInfluence;
+
+                if (planetData.Name == "Kerbin") DefaultKerbin = planetData;
 
                 DefaultOrbits[i] = planetData;
             }

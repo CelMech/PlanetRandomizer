@@ -36,6 +36,7 @@ namespace PlanetRandomizer
 
         public CelestialBody currentBody;
         public double sphereOfInfluence;
+        public PlanetData referenceBodyData;
 
         public override string ToString()
         {

@@ -20,12 +20,18 @@ namespace PlanetRandomizer
         double eccIncExponent = 2.0; // controls how circular/equatorial large planet/moon orbits are
         double soiSeparationFactor = 2.0; // controls how far apart planets/moons are in terms of their SOI;
 
+        double innerHabitableZone = 0.9; //of kerbin's default orbit
+        double outerHabitableZone = 1.8; //of kerbin's default orbit
+
         double probabilityOfSunOrbit = 0.2;
 
         List<PlanetData> changedPlanets;
         int totalPlanets;
 
         System.Random rng;
+
+        [Flags]
+        enum IgnoreConstraint { None, Habitable, NonIntersecting }
 
         public CustomRandomizer(System.Random rng)
         {
@@ -119,7 +125,12 @@ namespace PlanetRandomizer
                         existing = changedPlanets[referenceIndex - 1];
                     }
 
-                    if (constructOrbit(planetData, existing, attempt >= 149))
+                    IgnoreConstraint force = IgnoreConstraint.None;
+
+                    if (attempt >= 50) force = IgnoreConstraint.Habitable;
+                    if (attempt >= 149) force = IgnoreConstraint.Habitable & IgnoreConstraint.NonIntersecting;
+
+                    if (constructOrbit(planetData, existing, force))
                     {
                         UnityEngine.Debug.Log("Rank " + rank + " : " + planetData.Name + " Now Orbiting " + existing.Name);
                         UnityEngine.Debug.Log("Tries: " + attempt);
@@ -131,9 +142,9 @@ namespace PlanetRandomizer
             return changedPlanets;
         }
 
-        private bool constructOrbit(PlanetData moon, PlanetData reference, bool force = false)
+        private bool constructOrbit(PlanetData moon, PlanetData reference, IgnoreConstraint force = IgnoreConstraint.None)
         {
-            if(force) UnityEngine.Debug.LogError("Forcing Orbit of " + moon.Name);
+            if(force != IgnoreConstraint.None) UnityEngine.Debug.LogError("Forcing Orbit of " + moon.Name);
 
             if (moon.Mass > reference.Mass * maxMassRatio) return false;
 
@@ -158,18 +169,40 @@ namespace PlanetRandomizer
                 double apoapsis = Orbital.GetApoapsis(axis.Value, eccentricity);
                 double periapsis = Orbital.GetPeriapsis(axis.Value, eccentricity);
 
-                //Find other planets the orbit would collide with.
-                foreach (PlanetData existingMoon in changedPlanets)
+                //kerbin habitable zone rules
+                if (moon.currentBody == Planetarium.fetch.Home && (force & IgnoreConstraint.Habitable) == 0)
                 {
-                    if (existingMoon.ReferenceBody == reference.Name)
+                    PlanetData data = reference;
+                    while (data.ReferenceBody != "Sun" && data.Name != "Sun")
                     {
-                        double existingSOI = Orbital.GetSOI(existingMoon.SemiMajorAxis, existingMoon.Mass, reference.Mass);
-                        double exclusionMax = Orbital.GetApoapsis(existingMoon.SemiMajorAxis, existingMoon.Eccentricity) + (existingSOI + moonSOI) * soiSeparationFactor;
-                        double exclusionMin = Orbital.GetPeriapsis(existingMoon.SemiMajorAxis, existingMoon.Eccentricity) - (existingSOI + moonSOI) * soiSeparationFactor;
-                        if ((apoapsis < exclusionMax && apoapsis > exclusionMin) || (periapsis < exclusionMax && periapsis > exclusionMin))
+                        if (data.referenceBodyData == null) UnityEngine.Debug.LogWarning(data.Name + " orbits nothing!");
+                        data = data.referenceBodyData;
+                    }
+
+                    double axisAroundSun = data.SemiMajorAxis;
+
+                    if (axisAroundSun < Settings.DefaultKerbin.SemiMajorAxis * innerHabitableZone || axisAroundSun > Settings.DefaultKerbin.SemiMajorAxis * outerHabitableZone)
+                    {
+                        axis = null;
+                        continue;
+                    }
+                }
+
+                //Find other planets the orbit would collide with.
+                if ((force & IgnoreConstraint.NonIntersecting) == 0)
+                {
+                    foreach (PlanetData existingMoon in changedPlanets)
+                    {
+                        if (existingMoon.ReferenceBody == reference.Name)
                         {
-                            axis = null;
-                            break;
+                            double existingSOI = Orbital.GetSOI(existingMoon.SemiMajorAxis, existingMoon.Mass, reference.Mass);
+                            double exclusionMax = Orbital.GetApoapsis(existingMoon.SemiMajorAxis, existingMoon.Eccentricity) + (existingSOI + moonSOI) * soiSeparationFactor;
+                            double exclusionMin = Orbital.GetPeriapsis(existingMoon.SemiMajorAxis, existingMoon.Eccentricity) - (existingSOI + moonSOI) * soiSeparationFactor;
+                            if ((apoapsis < exclusionMax && apoapsis > exclusionMin) || (periapsis < exclusionMax && periapsis > exclusionMin))
+                            {
+                                axis = null;
+                                break;
+                            }
                         }
                     }
                 }
@@ -181,6 +214,7 @@ namespace PlanetRandomizer
             }
 
             moon.ReferenceBody = reference.Name;
+            moon.referenceBodyData = reference;
 
             moon.SemiMajorAxis = axis.Value;
             moon.sphereOfInfluence = Orbital.GetSOI(moon.SemiMajorAxis, moon.Mass, reference.Mass);
