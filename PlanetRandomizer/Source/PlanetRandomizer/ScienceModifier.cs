@@ -66,7 +66,11 @@ namespace PlanetRandomizer
                 UnityEngine.Debug.Log("Science values kept.");
                 return;
             }
-            if ((primary.referenceBody == Planetarium.fetch.Sun || science >= 2) && !primary.atmosphere) science++;
+            //Interplanetary bodies or those with high gravity increase their science.
+            if (surfaceGravity(primary) > 2.2) science += 1;
+            else if(!primary.atmosphere) {
+                if (primary.referenceBody == Planetarium.fetch.Sun || science > 2) science += 1;
+            }
             UnityEngine.Debug.Log("Science Index: "+science);
 
             Settings.Instance.Orbits.SkipWhile(d => d.currentBody != primary).First().ScienceIndex = science;
@@ -79,8 +83,10 @@ namespace PlanetRandomizer
             switch (science)
             {
                 case 0:
-                case 1:
                     assignScience(primary, 5f, 5f, 4f, 4f, 3f, 2.25f);
+                    break;
+                case 1:
+                    assignScience(primary, 7f, 7f, 6f, 6f, 5f, 3f);
                     break;
                 case 2:
                     assignScience(primary, 9f, 9f, 8f, 8f, 7f, 5f);
@@ -102,6 +108,11 @@ namespace PlanetRandomizer
             primary.scienceValues.FlyingLowDataValue = flyingLow;
             primary.scienceValues.InSpaceHighDataValue = lowSpace;
             primary.scienceValues.InSpaceLowDataValue = highSpace;
+        }
+
+        private static double surfaceGravity(CelestialBody body)
+        {
+            return body.gMagnitudeAtCenter / (body.Radius * body.Radius);
         }
     }
 }
