@@ -22,7 +22,7 @@ namespace PlanetRandomizer
             List<PlanetData> result = new CustomRandomizer(rand).MakePlanetData();
             Settings.Instance.Orbits = result.ToArray();
             AlignPlanetsToOrbits();
-            new ScienceModifier().BalanceScience(Planetarium.fetch.Home, -1);
+            ScienceModifier.BalanceScience(Planetarium.fetch.Home, -1);
         }
 
         public static void AlignPlanetsToOrbits()
@@ -88,6 +88,8 @@ namespace PlanetRandomizer
                     target.sphereOfInfluence = GetSOI(target);
                     target.hillSphere = GetHillSphere(target);
                     target.orbit.period = GetPeriod(target);
+
+                    ScienceModifier.SetScienceIndex(target, planet.ScienceIndex);
 
                 }
                 else

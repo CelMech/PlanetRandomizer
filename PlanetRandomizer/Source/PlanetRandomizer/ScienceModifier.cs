@@ -5,9 +5,9 @@ using System.Text;
 
 namespace PlanetRandomizer
 {
-    class ScienceModifier
+    static class ScienceModifier
     {
-        private List<CelestialBody> sciencedBodies = new List<CelestialBody>();
+        private static List<CelestialBody> sciencedBodies = new List<CelestialBody>();
 
         private static CelestialBodyScienceParams[] defaultScience;
 
@@ -30,7 +30,7 @@ namespace PlanetRandomizer
             }
         }
 
-        public void BalanceScience(CelestialBody primary, int science)
+        public static void BalanceScience(CelestialBody primary, int science)
         {
             UnityEngine.Debug.Log("Balancing Science for " + primary.name);
             assignScience(primary, science);
@@ -59,7 +59,7 @@ namespace PlanetRandomizer
             }
         }
 
-        private void assignScience(CelestialBody primary, int science)
+        private static void assignScience(CelestialBody primary, int science)
         {
             if (primary == Planetarium.fetch.Sun || primary == Planetarium.fetch.Home)
             {
@@ -68,7 +68,15 @@ namespace PlanetRandomizer
             }
             if ((primary.referenceBody == Planetarium.fetch.Sun || science >= 2) && !primary.atmosphere) science++;
             UnityEngine.Debug.Log("Science Index: "+science);
-            switch(science)
+
+            Settings.Instance.Orbits.SkipWhile(d => d.currentBody != primary).First().ScienceIndex = science;
+
+            SetScienceIndex(primary, science);
+        }
+
+        public static void SetScienceIndex(CelestialBody primary, int science)
+        {
+            switch (science)
             {
                 case 0:
                 case 1:
@@ -86,7 +94,7 @@ namespace PlanetRandomizer
             }
         }
 
-        private void assignScience(CelestialBody primary, float landed, float splashed, float flyingLow, float flyingHigh, float lowSpace, float highSpace)
+        private static void assignScience(CelestialBody primary, float landed, float splashed, float flyingLow, float flyingHigh, float lowSpace, float highSpace)
         {
             primary.scienceValues.LandedDataValue = landed;
             primary.scienceValues.SplashedDataValue = splashed;
