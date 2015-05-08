@@ -22,6 +22,7 @@ namespace PlanetRandomizer
             List<PlanetData> result = new CustomRandomizer(rand).MakePlanetData();
             Settings.Instance.Orbits = result.ToArray();
             AlignPlanetsToOrbits();
+            new ScienceModifier().BalanceScience(Planetarium.fetch.Home, -1);
         }
 
         public static void AlignPlanetsToOrbits()

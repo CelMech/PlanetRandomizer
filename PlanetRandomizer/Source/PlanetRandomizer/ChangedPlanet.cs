@@ -34,6 +34,9 @@ namespace PlanetRandomizer
         [Persistent]
         public int Rank = 1;
 
+        [Persistent]
+        public int ScienceIndex = 0;
+
         public CelestialBody currentBody;
         public double sphereOfInfluence;
         public PlanetData referenceBodyData;

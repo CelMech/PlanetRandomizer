@@ -50,6 +50,7 @@ namespace PlanetRandomizer
                 GameEvents.onGameStateLoad.Add(new EventData<ConfigNode>.OnEvent(OnGameLoaded));
                 GameEvents.onGameSceneSwitchRequested.Add(new EventData<GameEvents.FromToAction<GameScenes, GameScenes>>.OnEvent(OnMainMenu));
                 Settings.MemorizeDefaultLayout();
+                ScienceModifier.MemorizeDefaultScience();
                 //GameEvents.onGameSceneLoadRequested.Add(new EventData<GameScenes>.OnEvent(OnGameSceneLoadRequested));
                 //PlanetSettings.Load(KSPUtil.ApplicationRootPath + "/GameData/PlanetRandomizer/Resources/PlanetRandomizer.cfg");
                 //PlanetDefault.Load(KSPUtil.ApplicationRootPath + "/GameData/PlanetRandomizer/Resources/PlanetRandomizer.cfg");
@@ -62,6 +63,7 @@ namespace PlanetRandomizer
             {
                 systemLoaded = false; //Prepare to load another system if a savegame is loaded.
                 PlanetAligner.reloadDefaultPlanets();
+                ScienceModifier.RestoreScience();
             }
         }
 
