@@ -9,85 +9,77 @@ using KSP;
 
 namespace PlanetRandomizer
 {
-    public class PlanetSettings
+    public class Settings
     {
         private static Settings mInstance;
         public static Settings Instance
         {
             get
             {
-                return mInstance = mInstance ?? Settings.Load();
+                if (mInstance == null)
+                {
+                    mInstance = new Settings();
+                }
+                return mInstance;
             }
         }
 
-        public static void Load(string file)
-        {
-            mInstance = Settings.Load(file);
-        }
-    }
+        public static PlanetData[] DefaultOrbits;
 
-    public class Settings
-    {
         [Persistent]
         public int seed = 1;
-        public EditableInt Seed
-        {
-            get { return new EditableInt(seed); }
-            set { seed = value.val; }
-        }
 
         [Persistent(collectionIndex = "PLANET")]
-        public ChangedPlanet[] Planets = new ChangedPlanet[] { };
+        public PlanetData[] Orbits = new PlanetData[] { };
 
-
-        private static String File
+        public static bool Save(ConfigNode save)
         {
-            get
+            //Prevents errors from corrupting the savefile.
+            if (mInstance != null)
             {
-                return KSPUtil.ApplicationRootPath + "/saves/" + HighLogic.SaveFolder + "/PlanetRandomizer.cfg";
+                try
+                {
+                    ConfigNode.CreateConfigFromObject(mInstance, save);
+                }
+                catch (Exception ex)
+                {
+                    UnityEngine.Debug.LogException(ex);
+                }
             }
+            return mInstance != null;
         }
 
-        public void Save(string file)
+        public static void Load(ConfigNode load)
         {
-            try
-            {
-                ConfigNode save = new ConfigNode();
-                ConfigNode.CreateConfigFromObject(PlanetSettings.Instance, save);
-                save.Save(file);
-            }
-            catch
-            {
-
-            }
+            mInstance = new Settings();
+            ConfigNode.LoadObjectFromConfig(mInstance, load);
         }
 
-        public static Settings Load()
+        public static void MemorizeDefaultLayout()
         {
-            ConfigNode load = ConfigNode.Load(File);
-            Settings settings = new Settings();
-            if (load == null)
+            DefaultOrbits = new PlanetData[FlightGlobals.Bodies.Count - 1];
+            for (int i = 0; i < DefaultOrbits.Length; i++)
             {
-                settings.Save(File);
-                return settings;
+                CelestialBody planet = FlightGlobals.Bodies[i+1];
+                PlanetData planetData = new PlanetData();
+
+                planetData.ArgumentOfPeriapsis = planet.orbit.argumentOfPeriapsis;
+                planetData.currentBody = planet;
+                planetData.Eccentricity = planet.orbit.eccentricity;
+                planetData.Inclination = planet.orbit.inclination;
+                planetData.LAN = planet.orbit.LAN;
+                planetData.Mass = planet.Mass;
+                planetData.MeanAnomalyAtEpoch = planet.orbit.meanAnomalyAtEpoch;
+                planetData.Name = planet.gameObject.name;
+                planetData.Radius = planet.Radius;
+                planetData.Rank = 0;
+                planetData.ReferenceBody = planet.referenceBody.gameObject.name;
+                planetData.RotationPeriod = planet.rotationPeriod;
+                planetData.SemiMajorAxis = planet.orbit.semiMajorAxis;
+                planetData.sphereOfInfluence = planet.sphereOfInfluence;
+
+                DefaultOrbits[i] = planetData;
             }
-            ConfigNode.LoadObjectFromConfig(settings, load);
-
-            return settings;
-        }
-
-        public static Settings Load(string file)
-        {
-            ConfigNode load = ConfigNode.Load(file);
-            Settings settings = new Settings();
-            if (load == null)
-            {
-                settings.Save(file);
-                return settings;
-            }
-            ConfigNode.LoadObjectFromConfig(settings, load);
-
-            return settings;
         }
     }
 }

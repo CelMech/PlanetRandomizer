@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace PlanetRandomizer
 {
-    public class ChangedPlanet
+    public class PlanetData
     {
         [Persistent]
         public string Name = "ChangedPlanets";
@@ -33,6 +33,9 @@ namespace PlanetRandomizer
         public string ReferenceBody = "ReferenceBody";
         [Persistent]
         public int Rank = 1;
+
+        public CelestialBody currentBody;
+        public double sphereOfInfluence;
 
         public override string ToString()
         {
