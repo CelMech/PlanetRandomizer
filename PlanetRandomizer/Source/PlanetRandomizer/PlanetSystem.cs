@@ -22,6 +22,7 @@ namespace PlanetRandomizer
         public static PlanetSystem Instance;
 
         private static bool systemLoaded = false;
+        private static System.Random randomSeed = new System.Random();
 
         /*
          * if (File.Exists(KSPUtil.ApplicationRootPath + "/GameData/RealSolarSystem/RealSolarSystem.cfg")) // checks for RSS
@@ -120,7 +121,7 @@ namespace PlanetRandomizer
             Settings.Instance.seed = int.Parse(GUI.TextField(new Rect(10, 30, 60, 20), Settings.Instance.seed.ToString()));
             if (GUI.Button(new Rect(80, 30, 60, 20), "Random"))
             {
-                Settings.Instance.seed = UnityEngine.Random.Range(1,999999);
+                Settings.Instance.seed = PlanetSystem.randomSeed.Next(999999);
             }
             if (GUI.Button(new Rect(10, 60, 130, 20), "Select"))
             {
